@@ -1,0 +1,23 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('bulid') {
+            steps {
+                echo 'building program'
+            }
+        }
+	stage ('qa'){
+        when {
+                expression {
+                    return env.BRANCH_NAME == 'dev'
+            }
+        }
+	}
+        stage('deploy'){
+            steps{
+                echo 'deploying the code'
+            }
+        }
+    }
+}
