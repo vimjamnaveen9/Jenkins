@@ -1,0 +1,22 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('bulid') {
+            steps {
+                echo 'building program'
+            }
+        }
+        stage('qa'){
+            steps{
+                echo 'testing program'
+            }
+        }
+        stage('deploy'){
+            steps{
+                echo 'deploying the code'
+            }
+        }
+    }
+}
+
