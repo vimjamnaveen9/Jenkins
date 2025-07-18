@@ -1,0 +1,74 @@
+pipeline {
+    agent any
+    
+    environment {
+        FLASK_APP = 'app.py'
+        PORT = 5000
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/your-repo/flask-app.git'
+            }
+        }
+        
+        stage('Install Dependencies') {
+            steps {
+                sh 'pip install -r requirements.txt'
+            }
+        }
+        
+        stage('Lint') {
+            steps {
+                sh 'flake8 app.py --count --select=E9,F63,F7,F82 --show-source --statistics'
+                sh 'flake8 app.py --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics'
+            }
+        }
+        
+        stage('Test') {
+            steps {
+                sh 'python -m pytest tests/ -v'
+            }
+        }
+        
+        stage('Deploy') {
+            steps {
+                script {
+                    // For production, you might use a different deployment method
+                    sh """
+                    nohup python app.py &
+                    """
+                    
+                    // Alternatively for containerized deployment:
+                    // sh 'docker build -t flask-app .'
+                    // sh 'docker run -d -p ${PORT}:${PORT} flask-app'
+                }
+            }
+        }
+        
+        stage('Verify') {
+            steps {
+                script {
+                    // Verify the application is running
+                    sh 'curl http://localhost:${PORT} | grep "Congrats on DevOps Course"'
+                    sh 'curl http://localhost:${PORT}/api/data | grep "success"'
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            echo 'Pipeline completed - cleaning up'
+            // Stop the Flask app if running
+            sh 'pkill -f "python app.py" || true'
+        }
+        success {
+            echo 'Deployment succeeded!'
+        }
+        failure {
+            echo 'Deployment failed!'
+        }
+    }
+}
